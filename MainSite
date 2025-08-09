@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Educate Tomorrow H.E.A.T. | Monitoring Portal (Google Drive)</title>
+  <meta name="theme-color" content="#153B6D" />
+  <style>
+    :root{
+      /* ===== Educate Tomorrow-ish theme (tweak to exact brand) ===== */
+      --brand-primary:#153B6D;   /* deep blue */
+      --brand-accent:#FF7A00;    /* orange */
+      --brand-teal:#0EA5A0;      /* accent */
+      --ink:#1B1F24;
+      --muted:#6B7280;
+      --bg:#F7F9FC;
+      --card:#FFFFFF;
+      --ring:#D6E2FF;
+      --radius:14px;
+      --shadow: 0 8px 24px rgba(21,59,109,.08), 0 2px 8px rgba(0,0,0,.04);
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--ink)}
+
+    .app{display:grid;grid-template-columns:300px 1fr;min-height:100dvh}
+    .sidebar{background:linear-gradient(180deg,var(--brand-primary),#0E2A4D 60%);color:#EAF2FF;padding:28px 22px;position:sticky;top:0;height:100dvh;overflow:auto;box-shadow:inset -1px 0 0 rgba(255,255,255,.06)}
+    .logo{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+    .logo-badge{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--brand-accent),#FFC48A);display:grid;place-items:center;color:#0E2A4D;font-weight:800;letter-spacing:.5px;box-shadow:0 6px 16px rgba(0,0,0,.15)}
+    .logo h1{font-size:18px;line-height:1.2;margin:0}
+    .tagline{font-size:12px;color:#C9D8F6;margin-top:4px}
+    .nav{display:grid;gap:10px;margin-top:10px}
+    .nav button{all:unset;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;cursor:pointer;color:#EAF2FF;background:transparent;border:1px solid rgba(255,255,255,.12)}
+    .nav button:hover,.nav button.active{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22)}
+    .nav .dot{width:8px;height:8px;border-radius:50%;background:var(--brand-accent);box-shadow:0 0 0 3px rgba(255,122,0,.18)}
+    .footer-note{font-size:11px;color:#AFC7F6;margin-top:18px;opacity:.9}
+
+    .main{padding:26px;display:grid;gap:18px}
+    .topbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .search{flex:1;min-width:260px;display:flex;align-items:center;gap:10px;background:var(--card);padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);border:1px solid #E8EEF8}
+    .search input{border:0;outline:0;font-size:14px;width:100%;background:transparent}
+    .pill{background:#ECF3FF;color:#18427A;border:1px solid #DAE7FF;padding:10px 12px;border-radius:999px;font-size:12px;cursor:pointer}
+    .pill:hover{filter:brightness(.98)}
+
+    .auth{display:flex;gap:8px;align-items:center}
+    .auth .state{font-size:12px;color:#EAF2FF;background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px}
+    .auth button{all:unset;background:#fff;color:#0E2A4D;padding:8px 12px;border-radius:10px;cursor:pointer;border:1px solid rgba(255,255,255,.4)}
+
+    .hero{background:linear-gradient(135deg,#EAF2FF,#FDF7F1 70%);border:1px solid #E7EEF9;padding:20px;border-radius:var(--radius);display:flex;gap:16px;align-items:center;box-shadow:var(--shadow)}
+    .hero .badge{background:var(--brand-accent);color:white;font-weight:700;padding:6px 10px;border-radius:999px;font-size:12px}
+    .hero h2{margin:4px 0 6px 0}
+    .hero p{margin:0;color:#4B5563}
+
+    .section-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    @media (max-width:1100px){.section-grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:720px){.app{grid-template-columns:1fr}.sidebar{position:static;height:auto}.section-grid{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border:1px solid #E8EEF8;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px}
+    .card header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .card h3{margin:0;font-size:16px}
+    .upload{border:2px dashed #D4DDEE;border-radius:12px;padding:16px;text-align:center;color:var(--muted);transition:.2s ease;background:linear-gradient(180deg,#FCFDFF,#F7FAFF)}
+    .upload.drag{border-color:var(--brand-accent);background:#FFF7EF}
+    .upload input{display:none}
+    .upload .btn{display:inline-block;margin-top:8px;background:var(--brand-primary);color:white;border:none;padding:10px 12px;border-radius:10px;cursor:pointer}
+    .filelist{max-height:240px;overflow:auto;display:grid;gap:8px}
+    .fileitem{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px;border:1px solid #EDF1F8;border-radius:10px;background:#FBFCFF}
+    .fileitem .name{font-weight:600}
+    .fileitem .meta{font-size:12px;color:var(--muted)}
+    .fileitem button{all:unset;padding:8px 10px;border-radius:8px;cursor:pointer;border:1px solid #E7ECF5;background:white;font-size:12px}
+    .fileitem button:hover{background:#F3F7FF}
+    .empty{color:#9AA5B1;text-align:center;font-size:13px;padding:8px}
+
+    .viewer{display:none;position:fixed;inset:24px;background:rgba(17,24,39,.86);z-index:30}
+    .viewer .frame{position:absolute;top:24px;left:24px;right:24px;bottom:24px;background:#000;border-radius:16px;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,.4)}
+    .viewer header{position:absolute;top:16px;left:24px;right:24px;display:flex;justify-content:space-between;align-items:center;z-index:2}
+    .viewer header .title{color:white;font-weight:700}
+    .viewer header button{all:unset;color:white;background:rgba(255,255,255,.14);padding:8px 10px;border-radius:8px;cursor:pointer}
+    .viewer iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .sr-only{position:absolute!important;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap}
+    .focus-ring:focus{outline:3px solid var(--ring);outline-offset:2px}
+
+    .folder-chip{background:#fff;border:1px solid #DAE7FF;color:#18427A;border-radius:999px;padding:6px 10px;font-size:12px;display:flex;gap:6px;align-items:center}
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <aside class="sidebar">
+      <div class="logo" aria-label="Educate Tomorrow">
+        <div class="logo-badge" aria-hidden="true">ET</div>
+        <div>
+          <h1>Educate Tomorrow H.E.A.T.</h1>
+          <div class="tagline">Monitoring Visit Portal</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav"></nav>
+
+      <div class="footer-note">
+        Connect to Google Drive → pick a folder → upload PDFs by section. Files live in Drive (shared with your team).
+      </div>
+      <div style="margin-top:14px" class="auth">
+        <span class="state" id="authState">Signed out</span>
+        <button id="signinBtn">Sign in with Google</button>
+        <button id="signoutBtn" style="display:none">Sign out</button>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="pill" id="pickFolderBtn">Choose Drive Folder</button>
+        <span id="folderChip" class="folder-chip" style="display:none"></span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="search" role="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M10 4a6 6 0 0 1 4.472 9.977l4.275 4.276-1.414 1.414-4.276-4.275A6 6 0 1 1 10 4m0 2a4 4 0 1 0 0 8a4 4 0 0 0 0-8"/></svg>
+          <input id="search" class="focus-ring" placeholder="Search files by name or tag…" />
+        </div>
+        <button class="pill focus-ring" id="refreshBtn" title="Refresh from Drive">Refresh</button>
+      </div>
+
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="badge">Drive-Connected</div>
+        <div>
+          <h2 id="hero-title">Organized. Searchable. Shared in Google Drive.</h2>
+          <p>Store all documents for the Miami-Dade Homeless Trust monitoring visit in a single Drive folder. Each upload is labeled by section and searchable by tags.</p>
+        </div>
+      </section>
+
+      <section class="section-grid" id="sections"></section>
+    </main>
+  </div>
+
+  <!-- PDF Viewer Modal -->
+  <div class="viewer" id="viewer" aria-hidden="true" role="dialog" aria-labelledby="viewer-title">
+    <div class="frame">
+      <header>
+        <div class="title" id="viewer-title">Preview</div>
+        <div>
+          <button id="openInDriveBtn">Open in Drive</button>
+          <button id="closeViewer">Close</button>
+        </div>
+      </header>
+      <iframe id="pdfFrame" allow="autoplay"></iframe>
+    </div>
+  </div>
+
+  <!-- Google APIs -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+
+  <script>
+  /* =============================================================
+     Google Drive + Picker integration (client-side)
+     Fill in your credentials below.
+     ============================================================= */
+  const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com"; // OAuth 2.0 Client ID (Web)
+  const GOOGLE_API_KEY   = "YOUR_GOOGLE_API_KEY"; // API key (enable & restrict for Picker API)
+  const SCOPES = "https://www.googleapis.com/auth/drive.file"; // only files created/opened by this app
+
+  // App sections
+  const SECTIONS = [
+    "Policies","HMIS Agreements","Contracts","Personnel","Professional Development",
+    "Scripts","Meetings","MOUs","Monthly Reports","Data"
+  ];
+
+  // State
+  let accessToken = null;
+  let tokenClient = null;
+  let driveInited = false;
+  let currentFolder = JSON.parse(localStorage.getItem("et_drive_folder")||"null"); // {id,name}
+  let cache = []; // files fetched from Drive
+
+  // Elements
+  const nav = document.getElementById("nav");
+  const grid = document.getElementById("sections");
+  const searchInput = document.getElementById("search");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const authState = document.getElementById("authState");
+  const signinBtn = document.getElementById("signinBtn");
+  const signoutBtn = document.getElementById("signoutBtn");
+  const pickFolderBtn = document.getElementById("pickFolderBtn");
+  const folderChip = document.getElementById("folderChip");
+
+  // Viewer
+  const viewer = document.getElementById("viewer");
+  const pdfFrame = document.getElementById("pdfFrame");
+  const viewerTitle = document.getElementById("viewer-title");
+  const closeViewer = document.getElementById("closeViewer");
+  const openInDriveBtn = document.getElementById("openInDriveBtn");
+  let currentOpen = null; // {id, name}
+
+  // Utilities
+  function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+  function formatBytes(n){ if(n<1024) return n+" B"; const u=["KB","MB","GB"]; let i=-1; do{n/=1024;i++;}while(n>=1024&&i<u.length-1); return n.toFixed(1)+" "+u[i]; }
+  function dateNice(iso){ const d=new Date(iso); return d.toLocaleString([], {year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}); }
+  function ensureFolderChip(){
+    if(currentFolder){ folderChip.style.display='inline-flex'; folderChip.textContent = currentFolder.name; }
+    else { folderChip.style.display='none'; }
+  }
+
+  // Build Nav + Cards
+  function renderNav(){
+    nav.innerHTML = '';
+    SECTIONS.forEach(name=>{
+      const btn = el(`<button data-sec="${name}"><span class="dot"></span><span>${name}</span></button>`);
+      btn.addEventListener('click',()=>{
+        document.getElementById(`card-${name}`).scrollIntoView({behavior:'smooth',block:'start'});
+      });
+      nav.appendChild(btn);
+    });
+  }
+
+  function renderCards(){
+    grid.innerHTML = '';
+    SECTIONS.forEach(section=>{
+      const card = el(`
+        <article class="card" id="card-${section}">
+          <header>
+            <h3>${section}</h3>
+            <div>
+              <button class="pill" data-pick="${section}">Add from Drive</button>
+            </div>
+          </header>
+          <div class="upload" data-drop="${section}" tabindex="0" aria-label="Upload PDFs to ${section}">
+            <div><strong>Drop PDFs here</strong> or <button class="btn" type="button">Choose files</button></div>
+            <div class="meta" style="font-size:12px;margin-top:4px">PDF only • Add tags after upload</div>
+            <input id="file-${section}" type="file" multiple accept="application/pdf" />
+          </div>
+          <div class="filelist" id="list-${section}"></div>
+        </article>
+      `);
+      const drop = card.querySelector('.upload');
+      const input = card.querySelector('input');
+      const btn = card.querySelector('.btn');
+
+      btn.addEventListener('click',()=> input.click());
+      input.addEventListener('change', e=> handleLocalFiles(e.target.files, section));
+      ['dragenter','dragover'].forEach(ev=> drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('drag'); }));
+      ['dragleave','drop'].forEach(ev=> drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('drag'); }));
+      drop.addEventListener('drop', e=>{
+        const files = [...e.dataTransfer.files].filter(f=> f.type==='application/pdf');
+        handleLocalFiles(files, section);
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  // Google init
+  function gapiLoaded(){
+    gapi.load('client:picker', async ()=>{
+      await gapi.client.init({ apiKey: GOOGLE_API_KEY, discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"] });
+      driveInited = true;
+      maybeEnableUI();
+    });
+  }
+  window.gapiLoaded = gapiLoaded; // for onload callback if needed
+
+  function gisLoaded(){
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: SCOPES,
+      callback: (resp)=>{
+        if(resp.error){ console.error(resp); alert('Auth error'); return; }
+        accessToken = resp.access_token;
+        authState.textContent = 'Signed in';
+        signinBtn.style.display='none';
+        signoutBtn.style.display='inline-block';
+        maybeEnableUI();
+        refreshDrive();
+      }
+    });
+  }
+  window.gisLoaded = gisLoaded; // for onload callback if needed
+
+  // Request token
+  function ensureToken(prompt){
+    return new Promise((resolve)=>{
+      if(accessToken){ resolve(accessToken); return; }
+      tokenClient.requestAccessToken({ prompt: prompt ? 'consent' : '' });
+      // resolve happens in callback; small wait loop:
+      const iv = setInterval(()=>{ if(accessToken){ clearInterval(iv); resolve(accessToken); } }, 100);
+    });
+  }
+
+  // Signin/Signout
+  signinBtn.addEventListener('click', async ()=>{ await ensureToken(true); });
+  signoutBtn.addEventListener('click', ()=>{
+    accessToken = null;
+    authState.textContent = 'Signed out';
+    signinBtn.style.display='inline-block';
+    signoutBtn.style.display='none';
+  });
+
+  // Folder picker (Drive Picker — select a folder)
+  pickFolderBtn.addEventListener('click', async ()=>{
+    if(!driveInited) return;
+    await ensureToken(false);
+    const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+      .setIncludeFolders(true)
+      .setSelectFolderEnabled(true);
+    const picker = new google.picker.PickerBuilder()
+      .setTitle('Choose a Drive folder for this portal')
+      .setOAuthToken(accessToken)
+      .setDeveloperKey(GOOGLE_API_KEY)
+      .addView(view)
+      .setCallback(async data=>{
+        if(data.action === google.picker.Action.PICKED){
+          const doc = data.docs[0];
+          currentFolder = { id: doc.id, name: doc.name };
+          localStorage.setItem('et_drive_folder', JSON.stringify(currentFolder));
+          ensureFolderChip();
+          await refreshDrive();
+        }
+      })
+      .build();
+    picker.setVisible(true);
+  });
+
+  refreshBtn.addEventListener('click', refreshDrive);
+
+  function maybeEnableUI(){
+    pickFolderBtn.disabled = !accessToken;
+  }
+
+  // Upload from local to Drive
+  async function handleLocalFiles(files, section){
+    if(!currentFolder){ alert('Please choose a Drive folder first.'); return; }
+    await ensureToken(false);
+    for(const file of files){
+      if(file.type !== 'application/pdf'){ alert('PDFs only'); continue; }
+      await uploadPdfToDrive(file, section);
+    }
+    await refreshDrive();
+  }
+
+  async function uploadPdfToDrive(file, section){
+    const metadata = {
+      name: file.name,
+      parents: [currentFolder.id],
+      mimeType: 'application/pdf',
+      appProperties: { section: section, tags: '' }
+    };
+    const boundary = '-------314159265358979323846';
+    const delimiter = "\r\n--" + boundary + "\r\n";
+    const closeDelim = "\r\n--" + boundary + "--";
+    const reader = await file.arrayBuffer();
+    const base64Data = btoa(String.fromCharCode(...new Uint8Array(reader)));
+    const body =
+      delimiter + 'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+      JSON.stringify(metadata) + '\r\n' +
+      delimiter + 'Content-Type: application/pdf\r\n' +
+      'Content-Transfer-Encoding: base64\r\n\r\n' +
+      base64Data + closeDelim;
+
+    const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink,webContentLink,createdTime,size,appProperties',{
+      method:'POST',
+      headers:{
+        'Authorization': 'Bearer ' + accessToken,
+        'Content-Type': 'multipart/related; boundary=' + boundary
+      },
+      body
+    });
+    if(!res.ok){ const t = await res.text(); console.error(t); alert('Upload failed: ' + t); }
+  }
+
+  // Fetch files per section
+  async function refreshDrive(){
+    if(!currentFolder || !accessToken) return;
+    const qBase = `('${currentFolder.id}' in parents) and mimeType='application/pdf' and trashed=false`;
+    // Pull everything, then filter client-side by section/tag for search performance
+    const res = await gapi.client.drive.files.list({
+      q: qBase,
+      fields: "files(id,name,size,createdTime,webViewLink,webContentLink,appProperties)",
+      pageSize: 1000,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true
+    });
+    cache = res.result.files || [];
+    paintLists();
+    ensureFolderChip();
+  }
+
+  function paintLists(){
+    const q = (searchInput.value||'').toLowerCase().trim();
+    SECTIONS.forEach(section=>{
+      const list = document.getElementById(`list-${section}`);
+      if(!list) return;
+      const items = cache.filter(f=> (f.appProperties&&f.appProperties.section) === section)
+        .filter(f=> !q || f.name.toLowerCase().includes(q) || ((f.appProperties?.tags||'').toLowerCase().includes(q)))
+        .sort((a,b)=> new Date(b.createdTime) - new Date(a.createdTime));
+      if(items.length===0){ list.innerHTML = `<div class="empty">No files yet.</div>`; return; }
+      list.innerHTML = '';
+      items.forEach(file=>{
+        const row = el(`
+          <div class="fileitem">
+            <div>
+              <div class="name">${file.name}</div>
+              <div class="meta">${formatBytes(Number(file.size||0))} • ${dateNice(file.createdTime)} • <span>Tags:</span>
+                <input data-tag="${file.id}" placeholder="add, tags" style="border:0;border-bottom:1px dashed #CDD6EA;outline:0;background:transparent;font-size:12px;width:50%" value="${(file.appProperties?.tags||'')}" />
+              </div>
+            </div>
+            <button data-open="${file.id}" title="Preview">Preview</button>
+            <div style="display:flex; gap:8px">
+              <button data-download="${file.id}" title="Download">Download</button>
+              <button data-delete="${file.id}" title="Delete" style="color:#A11">Delete</button>
+            </div>
+          </div>
+        `);
+        list.appendChild(row);
+      });
+    });
+  }
+
+  // Delegated actions
+  grid.addEventListener('click', async (e)=>{
+    const id = e.target.dataset.open || e.target.dataset.download || e.target.dataset.delete;
+    if(!id) return;
+    const file = cache.find(f=> f.id===id);
+    if(!file) return;
+
+    if(e.target.dataset.open){ openViewer(file); }
+    if(e.target.dataset.download){ downloadFile(file); }
+    if(e.target.dataset.delete){ if(confirm('Delete this file from Drive?')) await deleteFile(file); }
+  });
+
+  grid.addEventListener('change', async (e)=>{
+    const id = e.target.dataset.tag; if(!id) return;
+    const file = cache.find(f=> f.id===id); if(!file) return;
+    const tags = e.target.value || '';
+    await gapi.client.drive.files.update({
+      fileId: id,
+      resource: { appProperties: { ...(file.appProperties||{}), tags } }
+    });
+    file.appProperties = { ...(file.appProperties||{}), tags };
+  });
+
+  // Preview (embed Google Drive viewer)
+  function openViewer(file){
+    currentOpen = file;
+    viewerTitle.textContent = file.name;
+    const url = `https://drive.google.com/file/d/${file.id}/preview`;
+    pdfFrame.src = url;
+    viewer.style.display = 'block';
+    viewer.setAttribute('aria-hidden','false');
+    openInDriveBtn.onclick = ()=> window.open(file.webViewLink, '_blank');
+  }
+  function closeModal(){ viewer.style.display='none'; viewer.setAttribute('aria-hidden','true'); pdfFrame.src=''; currentOpen=null; }
+  closeViewer.addEventListener('click', closeModal);
+  viewer.addEventListener('click', e=>{ if(e.target===viewer) closeModal(); });
+  window.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+
+  // Download
+  async function downloadFile(file){
+    await ensureToken(false);
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`,{
+      headers:{ Authorization: 'Bearer ' + accessToken }
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = file.name; a.click();
+    setTimeout(()=> URL.revokeObjectURL(url), 1000);
+  }
+
+  // Delete
+  async function deleteFile(file){
+    await gapi.client.drive.files.delete({ fileId: file.id });
+    cache = cache.filter(f=> f.id!==file.id);
+    paintLists();
+  }
+
+  // Search
+  searchInput.addEventListener('input', paintLists);
+
+  // Build UI
+  renderNav();
+  renderCards();
+  ensureFolderChip();
+
+  // Load Google libs and init
+  window.addEventListener('load', ()=>{
+    if(window.gapi){ gapiLoaded(); }
+    if(window.google && google.accounts && google.accounts.oauth2){ gisLoaded(); }
+  });
+  </script>
+</body>
+</html>
