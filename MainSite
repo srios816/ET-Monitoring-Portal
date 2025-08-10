@@ -153,8 +153,8 @@
      Google Drive + Picker integration (client-side)
      Fill in your credentials below.
      ============================================================= */
-  const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_OAUTH_CLIENT_ID.apps.googleusercontent.com"; // OAuth 2.0 Client ID (Web)
-  const GOOGLE_API_KEY   = "YOUR_GOOGLE_API_KEY"; // API key (enable & restrict for Picker API)
+  const GOOGLE_CLIENT_ID = "http://541398495528-2jdgdnmuftj2mbf01pkh00dpik8qqfob.apps.googleusercontent.com"; // OAuth 2.0 Client ID (Web)
+  const GOOGLE_API_KEY   = "AIzSayCzISMI8G7gLC9sREPLI19nxKXvBA4IcCk"; // API key (enable & restrict for Picker API)
   const SCOPES = "https://www.googleapis.com/auth/drive.file"; // only files created/opened by this app
 
   // App sections
@@ -486,3 +486,4 @@
   </script>
 </body>
 </html>
+"Add Google OAuth Client ID and API Key"
